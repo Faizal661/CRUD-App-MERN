@@ -1,15 +1,21 @@
 import express from "express";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-dotenv.config();
-mongoose
-  .connect(process.env.MONGO)
-  .then(() => console.log("connnected to MONGODB"))
-  .catch((error) => console.error(error));
+import userRoutes from './routes/user.routes.js'
+import authRoutes from "./routes/auth.routes.js";
+import { connectDB } from "./config/database.js";
+import { errorHandler } from "./utils/error.handler.js";
 
+connectDB();
+ 
 const app = express();
+
+app.use(express.json())
 
 app.listen(3000, () => {
   console.log("Server is started : 3000");
 });
         
+app.use('/api/user',userRoutes)
+app.use('/api/auth',authRoutes)
+
+
+app.use(errorHandler) 
