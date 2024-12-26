@@ -1,10 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({});
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage,setErrorMessage]=useState(null)
+  const navigate=useNavigate()
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -13,6 +15,7 @@ const SignUp = () => {
     try {
       setLoading(true);
       setError(false);
+      setErrorMessage(null)
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
@@ -25,8 +28,10 @@ const SignUp = () => {
       setLoading(false);
       if (data.success === false) {
         setError(true);
+        setErrorMessage(data.message)
         return;
       }
+      navigate('/sign-in')
     } catch (error) {
       setError(true);
       setLoading(false);
@@ -70,7 +75,7 @@ const SignUp = () => {
           <span className="text-blue-500">Sign In</span>
         </Link>
       </div>
-      <p className="text-red-600 mt-3">{error && "Something went wrong !!!"}</p>
+      <p className="text-red-600 mt-3">{error && (errorMessage || "Something went wrong !!!")}</p>
     </div>
   );
 };
