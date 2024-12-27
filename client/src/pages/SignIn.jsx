@@ -9,12 +9,14 @@ import { useDispatch, useSelector } from "react-redux";
 
 const SignIn = () => {
   const [formData, setFormData] = useState({});
-  const {loading,error}=useSelector((state)=>state.user)
+  const { loading, error } = useSelector((state) => state.user);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -28,15 +30,20 @@ const SignIn = () => {
       });
       const data = await res.json();
       if (data.success === false) {
-        dispatch(signInFailure(data))
+        dispatch(signInFailure(data));
+        console.log(data);
         return;
       }
-      dispatch(signInSuccess(data))
+      dispatch(signInSuccess(data));
+      if (data.isAdmin) {
+        return navigate("/admin");
+      }
       navigate("/");
     } catch (error) {
-      dispatch(signInFailure(error))
+      dispatch(signInFailure(error));
     }
   };
+
   return (
     <div className="p-3 max-w-lg mx-auto mt-5">
       <h1 className="text-3xl font-semibold text-center my-10">Sign In</h1>

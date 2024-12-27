@@ -1,34 +1,51 @@
-import { useSelector,useDispatch } from "react-redux";
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from 'axios'
-import {
-  deleteUserFailure,
-  deleteUserStart,
-  deleteUserSuccess,
-  signOut,
-  updateUserFailure,
-  updateUserStart,
-  updateUserSuccess,
-} from "../redux/user/userSlice";
 
-const Profile = () => {
+
+const UserDetailView = () => {
+  const { id } = useParams();
   const profileRef = useRef(null);
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState(null);
+  const [formData, setFormData] = useState({});
   const [image, setImage] = useState(undefined);
   const [imageUploading, setImageUploading] = useState(false);
   const [imageUploadSuccess, setImageUploadSuccess] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-  const [formData, setFormData] = useState({});
-  const [updateSuccess, setupdateSuccess] = useState(false);
-  const dispatch = useDispatch();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [updating, setUpdating] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
 
-  const { currentUser, loading, error } = useSelector((state) => state.user);
+  useEffect(() => {
+    fetchUser();
+  }, [id]);
 
   useEffect(() => {
     if (image) {
       handleImageUpload(image);
     }
   }, [image]);
+
+  const fetchUser = async () => {
+    try {
+      const res = await fetch(`/api/admin/users/${id}`);
+      const data = await res.json();
+      setUser(data);
+      setFormData({
+        username: data.username || "",
+        email: data.email || "",
+        profilePicture: data.profilePicture || "",
+      });
+    } catch (error) {
+      setError("Error fetching user details");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleImageUpload = async (image) => {
     setImageUploading(true)
@@ -56,12 +73,18 @@ const Profile = () => {
       });
   };
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setUpdating(true);
+    setUpdateSuccess(false);
+    setError(null);
+
     try {
-      dispatch(updateUserStart());
-      setupdateSuccess(false);
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
+      const res = await fetch(`/api/user/update/${id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,52 +93,50 @@ const Profile = () => {
       });
       const data = await res.json();
       if (data.success === false) {
-        dispatch(updateUserFailure(data));
+        setError(data.message);
         return;
       }
-      dispatch(updateUserSuccess(data));
-      setupdateSuccess(true);
+      
+      setUpdateSuccess(true);
+      setUser(data);
     } catch (error) {
-      dispatch(updateUserFailure(error));
+      setError("Something went wrong!");
+    } finally {
+      setUpdating(false);
     }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
 
-  const handleAccountDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this account?"))
-      return;
     try {
-      dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+      const res = await fetch(`/api/user/delete/${id}`, {
         method: "DELETE",
       });
       const data = await res.json();
+      
       if (data.success === false) {
-        dispatch(deleteUserFailure(data));
+        setError(data.message);
         return;
       }
-      dispatch(deleteUserSuccess(data));
+      
+      navigate('/admin');
     } catch (error) {
-      dispatch(deleteUserFailure(error));
+      setError("Error deleting user");
     }
   };
 
-  const handleSignOut = async () => {
-    if (!window.confirm("Are you really want to logout ?")) return;
-    try {
-      await fetch("/api/auth/signout");
-      dispatch(signOut());
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center text-5xl">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="p-3 max-w-lg mx-auto">
-      <h1 className="text-3xl font-semibold text-center my-6">Profile</h1>
+      <h1 className="text-3xl font-semibold text-center my-6">User Details</h1>
       <input
         type="file"
         ref={profileRef}
@@ -126,12 +147,12 @@ const Profile = () => {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="self-center">
           <img
-            src={formData.profilePicture || currentUser.profilePicture}
-            alt="profile picute"
+            src={formData.profilePicture || user?.profilePicture}
+            alt="profile picture"
             className="w-32 h-32 border-2 shadow-xl rounded-full object-cover"
           />
           <span
-            className="fas fa-edit float-end relative bottom-8  cursor-pointer"
+            className="fas fa-edit float-end relative bottom-8 cursor-pointer"
             onClick={() => profileRef.current.click()}
           ></span>
         </div>
@@ -149,49 +170,50 @@ const Profile = () => {
           )}
         </p>
         <input
-          defaultValue={currentUser.username}
+          defaultValue={user?.username}
           type="text"
           id="username"
           placeholder="Username"
-          className="bg-slate-100 p-3 rounded-lg mt-3"
+          className="bg-slate-100 p-3 rounded-lg"
           onChange={handleChange}
         />
         <input
-          defaultValue={currentUser.email}
+          defaultValue={user?.email}
           type="email"
           id="email"
           placeholder="Email"
           className="bg-slate-100 p-3 rounded-lg"
           onChange={handleChange}
         />
-        <input
-          type="password"
-          id="password"
-          placeholder="Password"
-          className="bg-slate-100 p-3 rounded-lg"
-          onChange={handleChange}
-        />
-        <button className="bg-rose-600 p-3 rounded-lg text-white hover:opacity-90">
-          {loading ? "Updating . . ." : "UPDATE"}
+        <button
+          type="submit"
+          className="bg-rose-600 p-3 rounded-lg text-white hover:opacity-90"
+          disabled={updating}
+        >
+          {updating  ? "Updating..." : "UPDATE"}
         </button>
       </form>
-      <div className="flex justify-between  px-1 mt-3">
-        <span
-          onClick={handleAccountDelete}
-          className="text-red-700 cursor-pointer"
+      <div className="flex justify-between mt-5">
+        <button
+          onClick={handleDelete}
+          className="text-red-700 hover:underline"
+          disabled={loading}
         >
-          Delete Account?
-        </span>
-        <span onClick={handleSignOut} className="text-red-700 cursor-pointer">
-          Sign Out
-        </span>
+          Delete User
+        </button>
+        <button
+          onClick={() => navigate("/admin")}
+          className="text-blue-700 hover:underline"
+        >
+          Back to Home
+        </button>
       </div>
-      <p className="text-red-600 mt-3">{error && "Something went wrong !!!"}</p>
-      <p className="text-green-500 mt-3">
-        {updateSuccess && "Updated successfully."}
-      </p>
+      {error && <p className="text-red-600 mt-5">{error}</p>}
+      {updateSuccess && (
+        <p className="text-green-500 mt-5">User updated successfully!</p>
+      )}
     </div>
   );
 };
 
-export default Profile;
+export default UserDetailView;
