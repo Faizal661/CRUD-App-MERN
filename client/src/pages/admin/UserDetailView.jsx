@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from 'axios'
-
+import axios from "axios";
 
 const UserDetailView = () => {
   const { id } = useParams();
@@ -48,9 +47,9 @@ const UserDetailView = () => {
   };
 
   const handleImageUpload = async (image) => {
-    setImageUploading(true)
-    setImageError(false)
-    setImageUploadSuccess(false)
+    setImageUploading(true);
+    setImageError(false);
+    setImageUploadSuccess(false);
     const preset_key = import.meta.env.VITE_PRESET_KEY;
     const cloud_name = import.meta.env.VITE_CLOUD_NAME;
 
@@ -63,12 +62,12 @@ const UserDetailView = () => {
         formImageUpload
       )
       .then((res) => {
-        setFormData({ ...formData, profilePicture: res.data.secure_url })
-        setImageUploading(false)
-        setImageUploadSuccess(true)
+        setFormData({ ...formData, profilePicture: res.data.secure_url });
+        setImageUploading(false);
+        setImageUploadSuccess(true);
       })
       .catch((err) => {
-        setImageUploading(false)
+        setImageUploading(false);
         setImageError(true);
       });
   };
@@ -96,7 +95,7 @@ const UserDetailView = () => {
         setError(data.message);
         return;
       }
-      
+
       setUpdateSuccess(true);
       setUser(data);
     } catch (error) {
@@ -107,23 +106,46 @@ const UserDetailView = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    Swal.fire({
+      text: "Are you really want to Delete?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Delete this account",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch(`/api/user/delete/${id}`, {
+            method: "DELETE",
+          });
+          const data = await res.json();
 
-    try {
-      const res = await fetch(`/api/user/delete/${id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      
-      if (data.success === false) {
-        setError(data.message);
-        return;
+          if (data.success === false) {
+            setError(data.message);
+            Swal.fire({
+              title: "Something went wrong",
+              icon: "error",
+            });
+            return;
+          }
+          Swal.fire({
+            icon: "success",
+            text: "Account Deleted Successfully",
+            showConfirmButton: false,
+            timer: 1000,
+          });
+
+          navigate("/admin");
+        } catch (error) {
+          setError("Error deleting user");
+          Swal.fire({
+            title: "Something went wrong",
+            icon: "error",
+          });
+        }
       }
-      
-      navigate('/admin');
-    } catch (error) {
-      setError("Error deleting user");
-    }
+    });
   };
 
   if (loading) {
@@ -156,17 +178,15 @@ const UserDetailView = () => {
             onClick={() => profileRef.current.click()}
           ></span>
         </div>
-        <p className='text-sm self-center'>
+        <p className="text-sm self-center">
           {imageError ? (
-            <span className='text-red-700'>
-              Error uploading image 
-            </span>
+            <span className="text-red-700">Error uploading image</span>
           ) : imageUploading ? (
-            <span className='text-green-700'>Updating Image....</span>
+            <span className="text-green-700">Updating Image....</span>
           ) : imageUploadSuccess ? (
-            <span className='text-green-500'>Image changed successfully</span>
+            <span className="text-green-500">Image changed successfully</span>
           ) : (
-            ''
+            ""
           )}
         </p>
         <input
@@ -190,7 +210,7 @@ const UserDetailView = () => {
           className="bg-rose-600 p-3 rounded-lg text-white hover:opacity-90"
           disabled={updating}
         >
-          {updating  ? "Updating..." : "UPDATE"}
+          {updating ? "Updating..." : "UPDATE"}
         </button>
       </form>
       <div className="flex justify-between mt-5">

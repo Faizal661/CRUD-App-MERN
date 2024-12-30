@@ -12,7 +12,7 @@ const persistConfig = {
     version: 1,
     storage
 }
-
+ 
 const persistedReducer = persistReducer(persistConfig, rootReducer)
 
 export const store = configureStore({
@@ -22,4 +22,4 @@ export const store = configureStore({
     })
 })
 
-export const persistor = persistStore(store)
+export const persistor = persistStore(store) 

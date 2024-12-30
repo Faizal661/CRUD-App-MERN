@@ -1,6 +1,6 @@
-import { useSelector,useDispatch } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useRef, useState } from "react";
-import axios from 'axios'
+import axios from "axios";
 import {
   deleteUserFailure,
   deleteUserStart,
@@ -31,9 +31,9 @@ const Profile = () => {
   }, [image]);
 
   const handleImageUpload = async (image) => {
-    setImageUploading(true)
-    setImageError(false)
-    setImageUploadSuccess(false)
+    setImageUploading(true);
+    setImageError(false);
+    setImageUploadSuccess(false);
     const preset_key = import.meta.env.VITE_PRESET_KEY;
     const cloud_name = import.meta.env.VITE_CLOUD_NAME;
 
@@ -46,12 +46,12 @@ const Profile = () => {
         formImageUpload
       )
       .then((res) => {
-        setFormData({ ...formData, profilePicture: res.data.secure_url })
-        setImageUploading(false)
-        setImageUploadSuccess(true)
+        setFormData({ ...formData, profilePicture: res.data.secure_url });
+        setImageUploading(false);
+        setImageUploadSuccess(true);
       })
       .catch((err) => {
-        setImageUploading(false)
+        setImageUploading(false);
         setImageError(true);
       });
   };
@@ -85,32 +85,75 @@ const Profile = () => {
   };
 
   const handleAccountDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this account?"))
-      return;
-    try {
-      dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: "DELETE",
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data));
-        return;
+    Swal.fire({
+      text: "Are you really want to Delete?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Delete my account",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          dispatch(deleteUserStart());
+          const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+            method: "DELETE",
+          });
+          const data = await res.json();
+          if (data.success === false) {
+            dispatch(deleteUserFailure(data));
+            Swal.fire({
+              title: "Something went wrong",
+              icon: "error",
+            });
+            return;
+          }
+          dispatch(deleteUserSuccess(data));
+          Swal.fire({
+            icon: "success",
+            text:"Account Deleted Successfully",
+            showConfirmButton: false,
+            timer:1000
+          });
+        } catch (error) {
+          dispatch(deleteUserFailure(error));
+          Swal.fire({
+            title: "Something went wrong",
+            icon: "error",
+          });
+        }
       }
-      dispatch(deleteUserSuccess(data));
-    } catch (error) {
-      dispatch(deleteUserFailure(error));
-    }
+    });
+   
   };
 
   const handleSignOut = async () => {
-    if (!window.confirm("Are you really want to logout ?")) return;
-    try {
-      await fetch("/api/auth/signout");
-      dispatch(signOut());
-    } catch (error) {
-      console.log(error);
-    }
+    Swal.fire({
+      text: "Are you really want to logout ?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Logout",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await fetch("/api/auth/signout");
+          dispatch(signOut());
+          Swal.fire({
+            icon: "success",
+            showConfirmButton: false,
+            timer:1000
+          });
+        } catch (error) {
+          console.log(error);
+          Swal.fire({
+            title: "Something went wrong",
+            icon: "error",
+          });
+        }
+      }
+    });
   };
 
   return (
@@ -135,17 +178,15 @@ const Profile = () => {
             onClick={() => profileRef.current.click()}
           ></span>
         </div>
-        <p className='text-sm self-center'>
+        <p className="text-sm self-center">
           {imageError ? (
-            <span className='text-red-700'>
-              Error uploading image 
-            </span>
+            <span className="text-red-700">Error uploading image</span>
           ) : imageUploading ? (
-            <span className='text-green-700'>Updating Image....</span>
+            <span className="text-green-700">Updating Image....</span>
           ) : imageUploadSuccess ? (
-            <span className='text-green-500'>Image changed successfully</span>
+            <span className="text-green-500">Image changed successfully</span>
           ) : (
-            ''
+            ""
           )}
         </p>
         <input
@@ -186,7 +227,9 @@ const Profile = () => {
           Sign Out
         </span>
       </div>
-      <p className="text-red-600 mt-3">{error && "Something went wrong !!!"}</p>
+      <p className="text-red-600 mt-3">
+        {error && (error.message || "Something went wrong !!!")}
+      </p>
       <p className="text-green-500 mt-3">
         {updateSuccess && "Updated successfully."}
       </p>

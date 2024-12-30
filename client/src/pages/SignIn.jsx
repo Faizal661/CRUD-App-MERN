@@ -54,6 +54,7 @@ const SignIn = () => {
           placeholder="Email"
           className="bg-slate-100 p-3 rounded-lg"
           onChange={handleChange}
+          required
         />
         <input
           type="password"
@@ -61,6 +62,7 @@ const SignIn = () => {
           placeholder="Password"
           className="bg-slate-100 p-3 rounded-lg"
           onChange={handleChange}
+          required
         />
         <button
           disabled={loading}

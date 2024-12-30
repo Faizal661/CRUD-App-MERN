@@ -5,6 +5,12 @@ import bcryptjs from 'bcryptjs'
 
 export const updateUser = async (req, res, next) => {
     try {
+        const { username,email  } = req.body;
+        const existingUserName = await User.findOne({ username,_id: { $ne: req.params.id }  });
+        if (existingUserName) return next(customErrorHandler(409, "Username is already taken."));
+        const existingUserEmail = await User.findOne({ email ,_id: { $ne: req.params.id } });
+        if (existingUserEmail) return next(customErrorHandler(409, "Email is already taken."));
+
         if (req.body.password) {
             req.body.password = bcryptjs.hashSync(req.body.password, 10)
         }
@@ -28,7 +34,7 @@ export const updateUser = async (req, res, next) => {
 }
 
 
-export const deleteUser=async(req,res,next)=>{
+export const deleteUser = async (req, res, next) => {
     try {
         await User.findByIdAndDelete(req.params.id)
 

@@ -5,6 +5,10 @@ const HomeAdmin = () => {
   const [userList, setUserList] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [usersPerPage] = useState(5);
+  
   const navigate = useNavigate();
 
   const getUserDetails = async () => {
@@ -35,6 +39,31 @@ const HomeAdmin = () => {
     );
   });
 
+
+
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers?.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil((filteredUsers?.length || 0) / usersPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center text-5xl">
@@ -60,7 +89,9 @@ const HomeAdmin = () => {
               onClick={() => setSearchTerm("")}
               className="absolute right-4 top-2 "
             >
-             <span className="font-semibold text-lg text-black  hover:text-gray-500">X</span> 
+              <span className="font-semibold text-lg text-black  hover:text-gray-500">
+                X
+              </span>
             </button>
           )}
         </div>
@@ -80,7 +111,7 @@ const HomeAdmin = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {filteredUsers?.map((user, index) => (
+            {currentUsers?.map((user, index) => (
               <tr key={index} className="bg-white hover:bg-gray-200">
                 <td className="px-4 py-3 text-center font-medium">
                   {index + 1}
@@ -111,9 +142,49 @@ const HomeAdmin = () => {
           </tbody>
         </table>
       </div>
-      {filteredUsers?.length === 0 && (
+      {filteredUsers?.length === 0 ? (
         <div className="text-center py-10 text-gray-500 text-xl">
           No user found ,based on your search.
+        </div>
+      ) : (
+        <div className="flex justify-center gap-2 mt-4">
+          <button
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 border border-black rounded-full ${
+              currentPage === 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100"
+            }`}
+          >
+            Previous
+          </button>
+
+          {[...Array(totalPages)].map((_, index) => (
+            <button
+              key={index}
+              onClick={() => paginate(index + 1)}
+              className={`px-3 py-1 border border-black rounded-full ${
+                currentPage === index + 1
+                  ? "bg-blue-400 text-white"
+                  : "bg-white hover:bg-gray-100"
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+
+          <button
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+            className={`px-3 py-1 border border-black rounded-full ${
+              currentPage === totalPages
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white hover:bg-gray-100"
+            }`}
+          >
+            Next
+          </button>
         </div>
       )}
     </div>
