@@ -212,18 +212,18 @@ const Profile = () => {
           className="bg-slate-100 p-3 rounded-lg"
           onChange={handleChange}
         />
-        <button className="bg-rose-600 p-3 rounded-lg text-white hover:opacity-90">
+        <button className="bg-slate-800 p-3 rounded-lg text-white hover:opacity-90">
           {loading ? "Updating . . ." : "UPDATE"}
         </button>
       </form>
       <div className="flex justify-between  px-1 mt-3">
         <span
           onClick={handleAccountDelete}
-          className="text-red-700 cursor-pointer"
+          className="text-red-500 cursor-pointer"
         >
           Delete Account?
         </span>
-        <span onClick={handleSignOut} className="text-red-700 cursor-pointer">
+        <span onClick={handleSignOut} className="text-red-500 cursor-pointer">
           Sign Out
         </span>
       </div>

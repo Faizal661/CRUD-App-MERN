@@ -15,7 +15,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.listen(3000, () => {
-  console.log("Server is started : 3000");
+  console.log("Server is started : http://localhost:3000/ ");
 });
         
 app.use('/api/auth',authRoutes) 

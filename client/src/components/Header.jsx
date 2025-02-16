@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 const Header = () => {
   const { currentUser } = useSelector((state) => state.user);
   return (
-    <div className="bg-slate-300">
+    <div className="bg-slate-800 text-slate-100">
       <div className="flex justify-between items-center max-w-7xl mx-auto p-3">
         {currentUser?.isAdmin ? (
           <>

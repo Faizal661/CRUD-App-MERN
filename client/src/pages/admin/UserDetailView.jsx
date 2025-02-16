@@ -207,7 +207,7 @@ const UserDetailView = () => {
         />
         <button
           type="submit"
-          className="bg-rose-600 p-3 rounded-lg text-white hover:opacity-90"
+          className="bg-slate-700 p-3 rounded-lg text-white hover:opacity-90"
           disabled={updating}
         >
           {updating ? "Updating..." : "UPDATE"}
